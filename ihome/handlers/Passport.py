@@ -69,11 +69,11 @@ class LoginHandler(BaseHandler):
 		sql = "select up_passwd,up_user_id,up_name from ih_user_profile where up_mobile=%(mobile)s"
 		try:
 			ret = self.db.get(sql,mobile=mobile)
-			logging.debug(str(ret["up_passwd"]))
-			logging.debug(passwd)
+			# logging.debug(str(ret["up_passwd"]))
+			# logging.debug(passwd)
 		except Exception as e:
 			logging.error(e)
-			return 	self.write(dict(errno=RET.DBERR, errmsg="查询出错"))
+			return 	self.write(dict(errno=RET.DBERR, errmsg="手机号或者密码有错误"))
 		if ret and str(ret["up_passwd"]) == passwd:
 			try:
 				self.session = Session(self)

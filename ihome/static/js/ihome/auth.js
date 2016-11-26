@@ -11,9 +11,19 @@ function showSuccessMsg() {
     });
 }
 $(document).ready(function(){
-		$(".popup_con").show();
-		$.get("/api/profile/auth",function(){
-
+		// $(".popup_con").show();
+		$.get("/api/profile/auth",function(data){
+			// console.log(data)
+			if("1" === data.errno){
+				$("#real-name").val(data.data["name"]);
+				$("#real-name").attr("disabled",true);
+				$("#id-card").val(data.data["idcard"]);
+				$("#id-card").attr("disabled",true);
+				$("input[type='submit']").hide();
+			}else{
+				$("#real-name").attr("disabled",false);
+				$("#id-card").attr("disabled",false);
+			}
 		})
 	$("#form-auth").submit(function(e){
 		e.preventDefault();
@@ -34,8 +44,13 @@ $(document).ready(function(){
 			},
 			success:function(data){
 				if("0"=== data.errno){
-
+					showSuccessMsg();
+				}else{
+					$(".error-msg").text(data.errmsg);
+					$(".error-msg").show();
 				}
+
+				// console.log(data);
 			}
 		});
 	})
