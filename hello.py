@@ -1,2 +1,4 @@
 print "hello world"
-print "hello itcast"
+print "hello world"
+print "hello world"
+
