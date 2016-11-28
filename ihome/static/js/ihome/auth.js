@@ -14,16 +14,21 @@ $(document).ready(function(){
 		// $(".popup_con").show();
 		$.get("/api/profile/auth",function(data){
 			// console.log(data)
-			if("1" === data.errno){
-				$("#real-name").val(data.data["name"]);
-				$("#real-name").attr("disabled",true);
-				$("#id-card").val(data.data["idcard"]);
-				$("#id-card").attr("disabled",true);
-				$("input[type='submit']").hide();
+			if("4101" === data.errno){
+				window.location.href="/";
+			}else{
+				if("1" === data.errno){
+					$("#real-name").val(data.data["name"]);
+					$("#real-name").attr("disabled",true);
+					$("#id-card").val(data.data["idcard"]);
+					$("#id-card").attr("disabled",true);
+					$("input[type='submit']").hide();
 			}else{
 				$("#real-name").attr("disabled",false);
 				$("#id-card").attr("disabled",false);
+				}
 			}
+		
 		})
 	$("#form-auth").submit(function(e){
 		e.preventDefault();

@@ -11,6 +11,7 @@ $(document).ready(function(){
 		if("0" === data.errno){
 			$("#user-name").text(data.data.name);
 			$("#user-mobile").text(data.data.mobile);
+            $("#user-avatar").attr("src",data.data.avatar)
 		}
 		else{
 			window.location.href = "/";

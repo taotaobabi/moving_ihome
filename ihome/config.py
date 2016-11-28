@@ -30,3 +30,5 @@ log_level = "debug"
 session_expires = 86400 # session数据有效期，秒
 
 passwd_hash_key = "ihome@$^*" # 密码加密salt 
+
+image_url_prefix = "http://o91qujnqh.bkt.clouddn.com/" # 七牛图片的域名

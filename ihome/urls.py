@@ -2,10 +2,14 @@
 
 import os
 
-from handlers import Passport, VerifyCode, Profile
+from handlers import Passport, VerifyCode, Profile, House
 from handlers.BaseHandler import StaticFileHandler
 
 handlers = [
+	(r'^/api/house/new$',House.NewHouseHandler),
+	(r'^/api/house/my$',House.MyHouseHandler),
+	(r'^/api/house/area$',House.AreaInfoHandler),
+	(r'^/api/profile/avatar$',Profile.AvatarHandler),
 	(r'^/api/profile/auth$',Profile.AuthHandler),
 	(r'^/api/profile/name$',Profile.NameHandler),
 	(r'^/api/profile$',Profile.ProFileHandler),

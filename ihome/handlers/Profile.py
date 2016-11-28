@@ -2,6 +2,8 @@
 
 import logging
 import re
+import config
+from utils.image_storage import storage
 from .BaseHandler import BaseHandler
 from utils.common import require_logined
 from utils.response_code import RET
@@ -12,7 +14,7 @@ class ProFileHandler(BaseHandler):
 	@require_logined
 	def get(self):
 		mobile = self.session.data["mobile"]
-		sql = "select up_name from ih_user_profile where up_mobile=%(mobile)s"
+		sql = "select up_name,up_avatar from ih_user_profile where up_mobile=%(mobile)s"
 		try:
 			ret = self.db.get(sql,mobile=mobile)
 		except Exception as e:
@@ -20,11 +22,20 @@ class ProFileHandler(BaseHandler):
 			return 	self.write(dict(errno=RET.DBERR, errmsg="查询出错"))
 		else:
 			self.session.data["name"] = ret["up_name"]
+			self.session.save()
 			name = self.session.data["name"]
-			data = {
-				"name":name,
-				"mobile":mobile
-			}
+			if ret["up_avatar"]:
+				avatar = config.image_url_prefix+ret["up_avatar"]
+				data = {
+					"name":name,
+					"mobile":mobile,
+					"avatar":avatar
+				}
+			else:
+				data = {
+					"name":name,
+					"mobile":mobile,
+				}		
 			return self.write(dict(errno=RET.OK, errmsg="OK", data=data))
 
 class NameHandler(BaseHandler):
@@ -32,6 +43,8 @@ class NameHandler(BaseHandler):
 	@require_logined
 	def post(self):
 		mobile = self.session.data["mobile"]
+		user_id = self.session.data["user_id"]
+		logging.debug(user_id)
 		name = self.json_args.get("name")
 		sql1 = "select count(*) counts from ih_user_profile where up_name=%(name)s"
 		sql = "update ih_user_profile set up_name=%(name)s where up_mobile =%(mobile)s"
@@ -51,6 +64,28 @@ class NameHandler(BaseHandler):
 			return 	self.write(dict(errno=RET.DBERR, errmsg="数据库更新出错"))
 		else:
 			return self.write(dict(errno=RET.OK, errmsg="OK"))
+	@require_logined		
+	def get(self):
+		user_id = self.session.data["user_id"]
+		sql = "select up_name,up_avatar from ih_user_profile where up_user_id=%(user_id)s"
+		try:
+			ret = self.db.get(sql,user_id=user_id)
+		except Exception as e:
+			logging.error(e)
+			return 	self.write(dict(errno=RET.DBERR, errmsg="查询出错"))
+		else:
+			if ret:
+				name = ret["up_name"]
+				avatar = config.image_url_prefix + ret["up_avatar"] if ret["up_avatar"] else ""
+				data = {
+					"name":name,
+					"avatar":avatar
+				}
+				return self.write({"errno":"0", "errmsg":"OK", "data":data})
+				 
+
+
+			
 
 class AuthHandler(BaseHandler):
 	"""实名认证"""
@@ -97,6 +132,36 @@ class AuthHandler(BaseHandler):
 			else:
 				
 				return self.write({"errno":"0", "errmsg":"用户没有实名认证"})
+
+class AvatarHandler(BaseHandler):
+	""""""
+	@require_logined
+	def post(self):
+		user_id = self.session.data["user_id"]
+		try:
+			avatar = self.request.files["avatar"][0]["body"]
+		except Exception as e:
+			logging.error(e)
+			return self.write(dict(errno=RET.PARAMERR, errmsg="参数错误"))
+		try:
+			image_name = storage(avatar)
+		except Exception as e:
+			logging.error(e) 
+			image_name = None 
+		if not image_name:
+			return self.write({"errno":RET.THIRDERR, "errmsg":"qiniu error"})
+		try:
+			ret = self.db.execute("update ih_user_profile set up_avatar=%(image_name)s where up_user_id=%(user_id)s",image_name=image_name,user_id=user_id)
+		except Exception as e:
+			logging.error(e) 
+			return self.write({"errno":RET.DBERR, "errmsg":"upload failed"})
+		img_url = config.image_url_prefix + image_name
+		self.write({"errno":RET.OK, "errmsg":"OK", "url":img_url})	
+
+									
+
+
+
 
 
 
