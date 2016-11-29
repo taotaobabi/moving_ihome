@@ -6,7 +6,7 @@ $(document).ready(function(){
             $(".auth-warn").hide();
             // $("#houses-list").hide();
             $("#houses-list").html(template("houses-list-temp",{houses:data.houses}));
-            console.log(data.houses);
+            // console.log(data.houses);
         }else if("1" === data.errno){
             $(".auth-warn").show();
             $("#houses-list").hide();

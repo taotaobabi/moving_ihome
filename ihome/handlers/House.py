@@ -12,13 +12,13 @@ from utils.common import require_logined
 class AreaInfoHandler(BaseHandler):
     """"""
     def get(self):
-        # try:
-        #     ret = self.redis.get("area_info")
-        # except Exception as e:
-        #     logging.error(e)
-        #     ret = None
-        # if ret:
-        #    return self.write('{"errno":%s, "errmsg":"OK", "data":%s}' %(RET.OK,ret))     
+        try:
+            ret = self.redis.get("area_info")
+        except Exception as e:
+            logging.error(e)
+            ret = None
+        if ret:
+           return self.write('{"errno":%s, "errmsg":"OK", "areas":%s}' %(RET.OK,ret))     
         sql = "select ai_name,ai_area_id from ih_area_info"
         try:
             ret = self.db.query(sql)
@@ -35,7 +35,7 @@ class AreaInfoHandler(BaseHandler):
             }            
             areas.append(area)
         try:
-            self.redis.setex("area_info",constants.AREA_INFO_REDIS_EXPIRES_SECONDS, areas)
+            self.redis.setex("area_info",constants.AREA_INFO_REDIS_EXPIRES_SECONDS, json.dumps(areas))
         except Exception as e:
             logging.error(e)        
         self.write({"errno":"0", "errmsg":"OK","areas":areas})
@@ -74,6 +74,50 @@ class MyHouseHandler(BaseHandler):
             return self.write({"errno":"0", "errmsg":"have verified", "houses":houses})
         else:
             return self.write({"errno":"1", "errmsg":"have no verify"})
+
+class NewHouseHandler(BaseHandler):
+    """"""
+    @require_logined
+    def post(self):
+        #获取参数
+        '''
+        {u'area_id': u'1', u'capacity': u'7', u'title': u'1', u'price': u'2', u'facility': [u'1'], u'acreage': u'5', u'beds': u'8', u'room_count': u'4', u'max_days': u'10', u'deposit': u'9', u'address': u'3', u'min_days': u'0', u'unit': u'6'}
+        '''
+        # logging.debug(self.json_args)
+        user_id = self.session.data.get("user_id")
+        title = self.json_args.get("title", "")
+        price = self.json_args.get("price", "")
+        acreage = self.json_args.get("acreage", "")
+        area_id = self.json_args.get("area_id", "")
+        capacity = self.json_args.get("capacity", "")
+        beds = self.json_args.get("beds", "")
+        room_count = self.json_args.get("room_count", "")
+        max_days = self.json_args.get("max_days", "")
+        deposit = self.json_args.get("deposit", "")
+        address = self.json_args.get("address","")
+        min_days = self.json_args.get("min_days", "")
+        unit = self.json_args.get("unit", "")
+        #校验
+        if not all((title,price,acreage,area_id,capacity,beds,room_count,max_days,deposit,address,min_days,unit)):
+            return self.write(dict(errno=RET.PARAMERR, errmsg="缺少参数"))
+        try:
+            price = int(price)*100
+            deposit = int(deposit)*100
+        except Exception as e:
+            logging.error(e) 
+            return self.write(dict(errno=RET.PARAMERR, errmsg="参数错误"))         
+        try:
+            sql = "insert into ih_house_info (hi_user_id, hi_title, hi_price, hi_acreage, hi_area_id, hi_capacity, hi_beds, hi_room_count, hi_max_days, hi_deposit, hi_address, hi_min_days, hi_house_unit) values(%(user_id)s,%(title)s,%(price)s,%(acreage)s,%(area_id)s,%(capacity)s,%(beds)s,%(room_count)s,%(max_days)s,%(deposit)s,%(address)s,%(min_days)s,%(unit)s)"
+            house_id = self.db.execute(sql,user_id=user_id,title=title,price=price,acreage=acreage,area_id=area_id,capacity=capacity,beds=beds,room_count=room_count,max_days=max_days,deposit=deposit,address=address,min_days=min_days,unit=unit)
+        except Exception as e:
+            logging.error(e)
+            return self.write(dict(errno=RET.DBERR, errmsg="插入数据库失败"))
+        # logging.debug(house_id)
+              
+
+       
+
+                  
 
 
 

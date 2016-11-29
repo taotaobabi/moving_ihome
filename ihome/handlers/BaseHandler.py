@@ -25,7 +25,7 @@ class BaseHandler(RequestHandler):
         	self.json_args = None
         # print self.json_args		
 
-    def ser_default_headers(self):
+    def set_default_headers(self):
         self.set_header("Content-type","application/json,charset=UTF-8")
 
     def initialize(self):
